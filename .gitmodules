@@ -1,3 +1,6 @@
 [submodule "autonomous_agent_template"]
 	path = autonomous_agent_template
 	url = https://github.com/airalab/autonomous_agent_template
+[submodule "Distributed-Sky"]
+	path = Distributed-Sky
+	url = git@github.com:DroneEmployee/Distributed-Sky.git
