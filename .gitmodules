@@ -1,0 +1,3 @@
+[submodule "autonomous_agent_template"]
+	path = autonomous_agent_template
+	url = https://github.com/airalab/autonomous_agent_template
