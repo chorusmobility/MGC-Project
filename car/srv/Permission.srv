@@ -1,0 +1,4 @@
+sensor_msgs/NavSatFix[] waypoints
+---
+nav_msgs/Path path
+

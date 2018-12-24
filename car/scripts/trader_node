@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Standart, System and Third Party
+import os
+from tempfile import TemporaryDirectory
+import ipfsapi
+
+# ROS
+import rospy
+import rosbag
+from std_srvs.srv import Empty as Arrange, # while we don't need to specify something in arrange
+                         EmptyRequest as ArrangeRequest,
+                         EmptyResponse as ArrangeResponse
+
+# AIRA
+from ipfs_common.msg import Multihash
+from robonomics_msgs.msg import Offer, Demand
+from ethereum_common.msg import Address, UInt256
+from ethereum_common.srv import Accounts, BlockNumber
+
+
+class TraderNode:
+    """
+    A template node used to listen a market and react by defined strategy.
+
+    Usage
+    =====
+    TraderNode.act - a place for your strategy to react on incomming offers and demands
+    By default it use reactive strategy to act on incoming offers and demands. If you would like to
+    change it, please take a look on TraderNode.on_incoming_* functions.
+
+    Important note
+    ==============
+    Please ensure you've made an *approve* on *factory.robonomics.<version>.eth* contract if you
+    publish demands. Take a look on *ethereum_common* package for appropriate services.
+
+    API
+    ===
+
+    Parameters
+    ----------
+    ~model : str
+        Agent model IPFS hash
+    ~token : str
+        Contract address of token agent recieve as payment
+    ~lot_lifetime : int
+        How many blockcs agent's offers and demands are valid
+
+    Subscribed Topics
+    -----------------
+    /liability/infochan/incoming/demand : robonomics_msgs/Demand
+    /liability/infochan/incoming/offer : robonomics_msgs/Offer
+
+    Services Called
+    ---------------
+    /eth/current_block
+    /eth/accounts
+
+
+    For MGC
+    =======
+
+    There are two actions we trade for:
+    1. Permission,
+    2. On road priority.
+
+
+    """
+
+    def __init__(self):
+        rospy.init_node('trader')
+        rospy.loginfo('Launching trader node...')
+
+        rospy.wait_for_service('/eth/current_block')
+        rospy.wait_for_service('/eth/accounts')
+        self.accounts = rospy.ServiceProxy('/eth/accounts', Accounts)()
+        rospy.loginfo(str(self.accounts)) # AIRA ethereum addresses
+
+        self.signing_demand = rospy.Publisher('/liability/infochan/eth/signing/demand', Demand, queue_size=128)
+        self.signing_offer = rospy.Publisher('/liability/infochan/eth/signing/offer', Offer, queue_size=128)
+
+        rospy.Subscriber('/liability/infochan/incoming/demand', Demand, self.on_incoming_demand)
+        rospy.Subscriber('/liability/infochan/incoming/offer', Offer, self.on_incoming_offer)
+
+        rospy.Service('/permission', Permission, self.ask_permission)
+        rospy.Service('/arrange', Arrange, self.arrange)
+
+        ipfs_provider = urlparse(rospy.get_param('~ipfs_http_provider')).netloc.split(':')
+        self.ipfs_client = ipfsapi.connect(ipfs_provider[0], int(ipfs_provider[1]))
+        self.tmp_directory = TemporaryDirectory()
+
+        rospy.loginfo('Trader node launched.')
+
+
+    def act(self, incoming):
+        """ Trader reaction tactics on incoming offers and demands """
+        # self.make_demand(incoming.objective, incoming.cost) # to publish a demand
+        self.make_offer(incoming.objective, incoming.cost) # to publish an offer
+
+
+    def ask_permission(self, request: PermissionRequest):
+        os.chdir(self.tmp_directory.name)
+        objective_path = os.path.join(self.tmp_directory.name, 'objective.bag')
+        with rosbag.Bag(objective_path, 'w') as bag:
+            for point in request.waypoints:
+                bag.write('/waypoints', point)
+        ipfs_response = self.ipfs_client.add(objective_path)
+
+        try:
+            objective_hash = ipfs_response['Hash']
+        except TypeError:
+            rospy.logwarn('IPFS add proceeding error: %s', ipfs_response[1]['Message'])
+            objective_hash = ipfs_response[0]['Hash']
+
+        self.make_offer(objective_hash, cost)
+        os.remove(objective_path)
+        # wait for a contract
+        # wait worker signal
+        # return path
+        return PermissionResponse()
+
+    
+    def arrange(self, request: ArrangeRequest):
+        self.make_offer(Multihash('QmSH31dHZUAFHKB3xK3KkoF4nZBwd3XPGWGU6ZGxye974R'), 0)
+        return ArrangeResponse()
+
+    
+    def on_incoming_demand(self, incoming_demand: Demand):
+        rospy.loginfo('Incoming demand %s...', str(incoming_bid))
+        if (incoming_demand.model == rospy.get_param('~model') and
+            incoming_demand.token == rospy.get_param('~token')):
+            rospy.loginfo('For my model and token!')
+            self.act(incoming_demand) # reactive strategy
+        else:
+            rospy.loginfo('Not fits my model or token, skip it.')
+
+
+    def on_incoming_offer(self, incoming_offer: Offer):
+        rospy.loginfo('Incoming offer %s...', str(incoming_offer))
+        if (incoming_offer.model == rospy.get_param('~model') and
+            incoming_offer.token == rospy.get_param('~token')):
+            rospy.loginfo('For my model and token!')
+            # self.act(incoming_offer) # reactive strategy
+        else:
+            rospy.loginfo('Not fits my model or token, skip it.')
+
+
+    def make_demand(self, objective, cost):
+        rospy.loginfo('Making demand...')
+        
+        demand = Demand()
+        demand.model = rospy.get_param('~model')
+        demand.objective = objective
+        demand.token = rospy.get_param('~token')
+        demand.cost = cost
+        demand.validatorFee = 0
+        demand.validator = '0x0000000000000000000000000000000000000000'
+        demand.deadline = rospy.ServiceProxy('/eth/current_block', BlockNumber)() + rospy.get_param('~bid_lifetime')
+
+        self.signing_demand.publish(demand)
+        rospy.loginfo(demand)
+
+
+    def make_offer(self, objective, cost):
+        rospy.loginfo('Making offer...')
+
+        offer = Offer()
+        offer.model = rospy.get_param('~model')
+        offer.objective = objective
+        offer.token = rospy.get_param('~token')
+        offer.cost = cost
+        offer.lighthouse = rospy.get_param('~lighthouse')
+        offer.validator = '0x0000000000000000000000000000000000000000'
+        offer.lighthouseFee = 0
+        rospy.wait_for_service('/eth/current_block')
+        offer.deadline = rospy.ServiceProxy('/eth/current_block', BlockNumber)() + rospy.get_param('~bid_lifetime')
+
+        self.signing_offer.publish(offer)
+        rospy.loginfo(offer)
+
+
+    def spin(self):
+        rospy.spin()
+
+
+if __name__ == '__main__':
+    TraderNode().spin()
