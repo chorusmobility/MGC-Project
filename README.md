@@ -5,12 +5,13 @@ Our effort for The MOBI Grand Challenge (mobihacks.devpost.com) in kind cooperat
 Use case
 ========
 1. Unmanned Traffic Management
-1.1. Self driving car ask UTM for a permissioned path between point A and point B
-1.2. UTM offers a path permissioned
-1.3. Self driving car send an acceptance message
-1.4. Robonomics network provider create a permission in form of smart contract
-1.5. When contract achieve Ethereum blockchain, permission became immutable
-2. Trading for priority move
+    1. Self driving car ask UTM for a permissioned path between point A and point B
+    1. UTM offers a path permissioned
+    1. Self driving car send an acceptance message
+    1. Robonomics network provider create a permission in form of smart contract
+    1. When contract achieve Ethereum blockchain, permission became immutable
+2. Trading for on road priority
+
 #TODO
 
 
