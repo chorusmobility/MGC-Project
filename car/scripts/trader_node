@@ -90,13 +90,9 @@ class TraderNode:
         self.ipfs_client = ipfsapi.connect(ipfs_provider[0], int(ipfs_provider[1]))
         self.tmp_directory = TemporaryDirectory()
 
+        self.arrage_cost = rospy.get_param('~arrangement_price_start')
+
         rospy.loginfo('Trader node launched.')
-
-
-    def act(self, incoming):
-        """ Trader reaction tactics on incoming offers and demands """
-        # self.make_demand(incoming.objective, incoming.cost) # to publish a demand
-        self.make_offer(incoming.objective, incoming.cost) # to publish an offer
 
 
     def ask_permission(self, request: PermissionRequest):
@@ -121,9 +117,22 @@ class TraderNode:
         return PermissionResponse()
 
     
-    def arrange(self, request: ArrangeRequest):
+    def arrange(self, request: ArrangeRequest): # start negotiations
         self.make_offer(Multihash('QmSH31dHZUAFHKB3xK3KkoF4nZBwd3XPGWGU6ZGxye974R'), 0)
         return ArrangeResponse()
+
+
+    def act(self, incoming): # process negotiations
+        """ Trader reaction tactics on incoming offers and demands """
+        # self.make_demand(incoming.objective, incoming.cost) # to publish a demand
+        if abs(self.arrage_cost - incoming.cost) > 2:
+            # Integer domain linear behavior
+            if self.arrage_cost > incoming.cost:
+                self.arrage_cost -= 1
+            elif self.arrage_cost < incoming.cost:
+                self.arrage_cost += 1
+        else:
+            self.make_offer(incoming.objective, incoming.cost) # to publish an offer
 
     
     def on_incoming_demand(self, incoming_demand: Demand):
