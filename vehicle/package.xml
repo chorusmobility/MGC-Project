@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>car</name>
+  <name>vehicle</name>
   <version>0.1.0</version>
-  <description>Simple modular AIRA example package.</description>
+  <description>Vehicle high level control package</description>
   <author email="a.khssnv@gmail.com">Alisher A. Khassanov</author>
   <maintainer email="akru@aira.life">Alexander Krupenkin</maintainer>
   <license>BSD3</license>

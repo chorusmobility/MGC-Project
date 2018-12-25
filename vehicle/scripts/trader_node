@@ -9,9 +9,9 @@ import ipfsapi
 # ROS
 import rospy
 import rosbag
-from std_srvs.srv import Empty as Arrange, # while we don't need to specify something in arrange
-                         EmptyRequest as ArrangeRequest,
-                         EmptyResponse as ArrangeResponse
+from std_srvs.srv import (Empty as Arrange, # while we don't need to specify something in arrange
+                          EmptyRequest as ArrangeRequest,
+                          EmptyResponse as ArrangeResponse)
 
 # AIRA
 from ipfs_common.msg import Multihash
@@ -95,6 +95,7 @@ class TraderNode:
         rospy.loginfo('Trader node launched.')
 
 
+    '''
     def ask_permission(self, request: PermissionRequest):
         os.chdir(self.tmp_directory.name)
         objective_path = os.path.join(self.tmp_directory.name, 'objective.bag')
@@ -115,12 +116,16 @@ class TraderNode:
         # wait worker signal
         # return path
         return PermissionResponse()
+    '''
 
     
     def arrange(self, request: ArrangeRequest): # start negotiations
         self.make_offer(Multihash('QmSH31dHZUAFHKB3xK3KkoF4nZBwd3XPGWGU6ZGxye974R'), 0)
         return ArrangeResponse()
 
+    '''
+    Road priority trading strategy in next 3 functions
+    '''
 
     def act(self, incoming): # process negotiations
         """ Trader reaction tactics on incoming offers and demands """

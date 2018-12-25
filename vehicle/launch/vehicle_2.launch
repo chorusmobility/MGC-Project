@@ -1,0 +1,12 @@
+<launch>
+
+  <group ns="vehicle_2">
+    <node name="trader_utm" pkg="vehicle" type="trader_node" output="screen">
+      <param name="lighthouse" value="airalab.lighthouse.4.robonomics.sid" />
+      <param name="model" value="QmRybtgtRntQnUKydCtAPZHGuSp4zHDeLZQvjTZhDKGxrF" />
+      <param name="token" value="xrt.4.robonomics.sid" />
+      <param name="bid_lifetime" value="2" /> <!-- Ethereum blocks lifetime, ~12-15 sec for one -->
+    </node>
+  </group>
+
+</launch>

@@ -5,7 +5,7 @@
 
 mkRosPackage rec {
   name = "${pname}-${version}";
-  pname = "car";
+  pname = "vehicle";
   version = "master";
 
   src = ./.;
@@ -13,8 +13,8 @@ mkRosPackage rec {
   propagatedBuildInputs = [ robonomics_comm ];
 
   meta = with stdenv.lib; {
-    description = "Simple modular AIRA example effort";
-    homepage = http://github.com/airalab/autonomous_agent_template;
+    description = "Vehicle package";
+    homepage = https://github.com/airalab/mobi_grand_challenge;
     license = licenses.bsd3;
     maintainers = with maintainers; [ akru ];
   };
