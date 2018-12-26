@@ -4,6 +4,7 @@
 # Standart, System and Third Party
 import os
 from tempfile import TemporaryDirectory
+from urllib.parse import urlparse
 import ipfsapi
 
 # ROS
@@ -72,25 +73,30 @@ class TraderNode:
         rospy.init_node('trader')
         rospy.loginfo('Launching trader node...')
 
-        rospy.wait_for_service('/eth/current_block')
-        rospy.wait_for_service('/eth/accounts')
-        self.accounts = rospy.ServiceProxy('/eth/accounts', Accounts)()
-        rospy.loginfo(str(self.accounts)) # AIRA ethereum addresses
+        ipfs_provider = urlparse(rospy.get_param('~ipfs_http_provider')).netloc.split(':')
+        self.ipfs_client = ipfsapi.connect(ipfs_provider[0], int(ipfs_provider[1]))
+        self._tmp_directory = TemporaryDirectory()
 
-        self.signing_demand = rospy.Publisher('/liability/infochan/eth/signing/demand', Demand, queue_size=128)
-        self.signing_offer = rospy.Publisher('/liability/infochan/eth/signing/offer', Offer, queue_size=128)
+        #rospy.wait_for_service('/eth/current_block')
+        #rospy.wait_for_service('/eth/accounts')
+        #self.accounts = rospy.ServiceProxy('/eth/accounts', Accounts)()
+        #rospy.loginfo(str(self.accounts)) # AIRA ethereum addresses
+
+        self.signing_demand = rospy.Publisher('/liability/infochan/eth/signing/demand',
+                                              Demand, queue_size=128)
+        self.signing_offer = rospy.Publisher('/liability/infochan/eth/signing/offer',
+                                             Offer, queue_size=128)
 
         rospy.Subscriber('/liability/infochan/incoming/demand', Demand, self.on_incoming_demand)
         rospy.Subscriber('/liability/infochan/incoming/offer', Offer, self.on_incoming_offer)
 
-        rospy.Service('/permission', Permission, self.ask_permission)
-        rospy.Service('/arrange', Arrange, self.arrange)
+        # rospy.Service('/permission', Permission, self.ask_permission)
+        rospy.Service('~arrange', Arrange, self.arrange)
 
-        ipfs_provider = urlparse(rospy.get_param('~ipfs_http_provider')).netloc.split(':')
-        self.ipfs_client = ipfsapi.connect(ipfs_provider[0], int(ipfs_provider[1]))
-        self.tmp_directory = TemporaryDirectory()
 
-        self.arrage_cost = rospy.get_param('~arrangement_price_start')
+        self.arrange_cost = int(rospy.get_param('~arrangement_cost_start'))
+        self.arrange_cost_sent = list()
+        self.lots_sent = list()
 
         rospy.loginfo('Trader node launched.')
 
@@ -120,30 +126,42 @@ class TraderNode:
 
     
     def arrange(self, request: ArrangeRequest): # start negotiations
-        self.make_offer(Multihash('QmSH31dHZUAFHKB3xK3KkoF4nZBwd3XPGWGU6ZGxye974R'), 0)
+        self.make_offer(Multihash('QmSH31dHZUAFHKB3xK3KkoF4nZBwd3XPGWGU6ZGxye974R'),
+                        UInt256(str(self.arrange_cost)))
         return ArrangeResponse()
 
-    '''
-    Road priority trading strategy in next 3 functions
-    '''
+    """
+    Road priority trading strategy in 3 following functions
+    """
 
     def act(self, incoming): # process negotiations
         """ Trader reaction tactics on incoming offers and demands """
-        # self.make_demand(incoming.objective, incoming.cost) # to publish a demand
-        if abs(self.arrage_cost - incoming.cost) > 2:
-            # Integer domain linear behavior
-            if self.arrage_cost > incoming.cost:
-                self.arrage_cost -= 1
-            elif self.arrage_cost < incoming.cost:
-                self.arrage_cost += 1
-        else:
-            self.make_offer(incoming.objective, incoming.cost) # to publish an offer
 
+        incoming_cost = int(incoming.cost.uint256) # UInt256 string -> int
+        
+        if self.arrange_cost != incoming_cost: # Integer domain linear behavior
+            if self.arrange_cost > incoming_cost:
+                self.arrange_cost -= 1
+            elif self.arrange_cost < incoming_cost:
+                self.arrange_cost += 1
+            if not self.arrange_cost in self.arrange_cost_sent:
+                self.make_lot(self._get_counter_lot_type(incoming),
+                            incoming.objective,
+                            UInt256(str(self.arrange_cost)))
+                self.arrange_cost_sent.append(self.arrange_cost)
+
+        elif not (self.arrange_cost in self.arrange_cost_sent):
+            self.make_lot(self._get_counter_lot_type(incoming), 
+                          incoming.objective,
+                          incoming.cost) # agree
+
+        rospy.loginfo('Arrange cost: {}'.format(self.arrange_cost))
     
+
     def on_incoming_demand(self, incoming_demand: Demand):
-        rospy.loginfo('Incoming demand %s...', str(incoming_bid))
-        if (incoming_demand.model == rospy.get_param('~model') and
-            incoming_demand.token == rospy.get_param('~token')):
+        rospy.loginfo('Incoming demand %s...', str(incoming_demand))
+        if (incoming_demand.model.multihash == rospy.get_param('~model') and
+            incoming_demand.token.address == rospy.get_param('~token')):
             rospy.loginfo('For my model and token!')
             self.act(incoming_demand) # reactive strategy
         else:
@@ -152,46 +170,53 @@ class TraderNode:
 
     def on_incoming_offer(self, incoming_offer: Offer):
         rospy.loginfo('Incoming offer %s...', str(incoming_offer))
-        if (incoming_offer.model == rospy.get_param('~model') and
-            incoming_offer.token == rospy.get_param('~token')):
+        if (incoming_offer.model.multihash == rospy.get_param('~model') and
+            incoming_offer.token.address == rospy.get_param('~token')):
             rospy.loginfo('For my model and token!')
-            # self.act(incoming_offer) # reactive strategy
+            self.act(incoming_offer) # reactive strategy
         else:
             rospy.loginfo('Not fits my model or token, skip it.')
 
 
-    def make_demand(self, objective, cost):
+    def _get_counter_lot_type(self, lot):
+        if type(lot) == Offer:
+            return Demand
+        elif type(lot) == Demand:
+            return Offer
+        else:
+            raise TypeError('Unknown lot type')
+
+
+    def make_lot(self, lot_type, objective: Multihash, cost: UInt256):
+        lot = lot_type() # Offer or Demand
+        lot.model = Multihash(rospy.get_param('~model'))
+        lot.objective = objective
+        lot.token = Address(rospy.get_param('~token'))
+        lot.cost = cost
+        lot.lighthouse = Address(rospy.get_param('~lighthouse'))
+        lot.validator = Address('0x0000000000000000000000000000000000000000')
+        lot.deadline = UInt256('9999999') #rospy.ServiceProxy('/eth/current_block', BlockNumber)() + rospy.get_param('~bid_lifetime')
+
+        if lot_type == Demand:
+            lot.validatorFee = UInt256('0')
+            self.signing_demand.publish(lot)
+        elif lot_type == Offer:
+            lot.lighthouseFee = UInt256('0')
+            self.signing_offer.publish(lot)
+        else:
+            raise TypeError('Unknown lot type')
+        self.lots_sent.append(lot)
+        rospy.loginfo(lot)
+
+
+    def make_demand(self, objective: Multihash, cost: UInt256):
         rospy.loginfo('Making demand...')
-        
-        demand = Demand()
-        demand.model = rospy.get_param('~model')
-        demand.objective = objective
-        demand.token = rospy.get_param('~token')
-        demand.cost = cost
-        demand.validatorFee = 0
-        demand.validator = '0x0000000000000000000000000000000000000000'
-        demand.deadline = rospy.ServiceProxy('/eth/current_block', BlockNumber)() + rospy.get_param('~bid_lifetime')
-
-        self.signing_demand.publish(demand)
-        rospy.loginfo(demand)
+        self.make_lot(Demand, objective, cost)
 
 
-    def make_offer(self, objective, cost):
+    def make_offer(self, objective: Multihash, cost: UInt256):
         rospy.loginfo('Making offer...')
-
-        offer = Offer()
-        offer.model = rospy.get_param('~model')
-        offer.objective = objective
-        offer.token = rospy.get_param('~token')
-        offer.cost = cost
-        offer.lighthouse = rospy.get_param('~lighthouse')
-        offer.validator = '0x0000000000000000000000000000000000000000'
-        offer.lighthouseFee = 0
-        rospy.wait_for_service('/eth/current_block')
-        offer.deadline = rospy.ServiceProxy('/eth/current_block', BlockNumber)() + rospy.get_param('~bid_lifetime')
-
-        self.signing_offer.publish(offer)
-        rospy.loginfo(offer)
+        self.make_lot(Offer, objective, cost)
 
 
     def spin(self):
