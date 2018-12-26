@@ -34,13 +34,13 @@ AIRA packages
 -------------
 We will need two persistent terminals for logs
 
-1. In first launch `robonomics_liability` node
+1. In first launch `robonomics_liability` node to connect with Robonomics network providers
 ```
 source ./result/setup.bash
 source ./liability.sh
 ```
 
-2. In second one launch `ethereum_common` node 
+2. In second one launch `ethereum_common` node to have a ROS API to web3
 ```
 source ./result/setup.bash
 source ./liability.sh
