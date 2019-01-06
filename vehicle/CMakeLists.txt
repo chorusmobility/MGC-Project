@@ -3,6 +3,8 @@ project(vehicle)
 
 find_package(catkin REQUIRED COMPONENTS
     rospy
+    std_msgs
+    geometry_msgs
     message_generation
 )
 
@@ -11,13 +13,13 @@ add_service_files(
         SetGoal.srv
 )
 
+catkin_python_setup()
+
 generate_messages(
     DEPENDENCIES
         geometry_msgs
         std_msgs
 )
-
-catkin_python_setup()
 
 catkin_package()
 
