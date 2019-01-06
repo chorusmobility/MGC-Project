@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Standart, System and Third party
@@ -25,7 +25,7 @@ class Duckbot_g2g_controller:
 
     def __init__(self):
         rospy.init_node('duckbot_g2g_controller')
-        self.robot_name = 'duckiebot_' + rospy.get_param('~veh')
+        self.robot_name = rospy.get_param('~veh') # 'duckiebot_' + rospy.get_param('~veh')
 
         rospy.wait_for_service('/gazebo/get_model_state')
         self.robot_dist_service = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
@@ -34,31 +34,36 @@ class Duckbot_g2g_controller:
         self.pub_vel = rospy.Publisher('/' + self.robot_name + '/cmd_vel', Twist, queue_size=1)
         self.pub_pose = rospy.Publisher('~pose', Pose, queue_size=1)
 
-        rospy.Service('~move_to_goal', SetGoal, move_to_goal)
+        rospy.Service('~move_to_goal', SetGoal, self.move_to_goal)
         self.pose = Pose()
-        self.rate = rospy.Rate(2) # Hz
 
-        threading.Thread(target=self.update_pose, daemon=True).start()
+        _ = threading.Thread(target=self.update_pose)
+        _.daemon = True
+        _.start()
 
     def update_pose(self):
+	rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            model_state = self.robot_dist_service(self.robot_name, 'world')
+            model_state = self.robot_dist_service('duckiebot_' + self.robot_name, 'world')
             self.pose = model_state.pose # TODO check
-            self.pub_pose(self.pose)
-            self.rate.sleep()
+            self.pub_pose.publish(self.pose)
+            rate.sleep()
 
     def move_to_goal(self, request):
         goal = request.goal
-        pose = self.pose
         base_speed = float(rospy.get_param('~base_speed', '0.5'))
 
-        while dist_between([pose.position.x, pose.position.y],
-                           [goal.position.x, goal.position.y]) > 0.5 and \
+	rate = rospy.Rate(3)
+        while dist_between([self.pose.position.x, self.pose.position.y],
+                           [goal.x, goal.y]) > 0.5 and \
               not rospy.is_shutdown():
-            twist = self._calc_vel_cmd(base_speed, pose, goal)
-            self.pub_vel(twist)
-            self.rate.sleep()
-        return True
+            twist = self._calc_vel_cmd(base_speed, self.pose, goal)
+            rospy.loginfo(twist)
+            self.pub_vel.publish(twist)
+            rate.sleep()
+        self.pub_vel.publish(Twist())
+        rospy.loginfo('Complete')
+        return
     
     def _calc_vel_cmd(self, base_speed, pose, goal):
         (inc_x, inc_y, angle) = (0.0, 0.0, 0.0)
@@ -66,9 +71,9 @@ class Duckbot_g2g_controller:
                       pose.orientation.y, pose.orientation.z, pose.orientation.w])
 
         dist = dist_between([pose.position.x, pose.position.y],
-                            [goal.position.x, goal.position.y])
-        inc_x = goal.position.x - pose.position.x
-        inc_y = goal.position.y - pose.position.y
+                            [goal.x, goal.y])
+        inc_x = goal.x - pose.position.x
+        inc_y = goal.y - pose.position.y
         goal_angle = math.atan2(inc_y, inc_x)
         angle = yaw - goal_angle
 
@@ -90,4 +95,4 @@ class Duckbot_g2g_controller:
 
 
 if __name__ == '__main__':
-    Duckbot_g2g_controller.start()
+    Duckbot_g2g_controller().start()
