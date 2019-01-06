@@ -2,16 +2,20 @@ cmake_minimum_required(VERSION 2.8.3)
 project(vehicle)
 
 find_package(catkin REQUIRED COMPONENTS
-  rospy
-  message_generation
+    rospy
+    message_generation
 )
 
 add_service_files(
-  FILES
-    SetGoal.srv
+    FILES
+        SetGoal.srv
 )
 
-generate_messages()
+generate_messages(
+    DEPENDENCIES
+        geometry_msgs
+        std_msgs
+)
 
 catkin_python_setup()
 
