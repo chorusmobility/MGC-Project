@@ -13,6 +13,8 @@ from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose, Twist
 from gazebo_msgs.srv import GetModelState
 
+from vehicle.srv import SetGoal
+
 
 def dist_between(a, b):
     dist = math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
