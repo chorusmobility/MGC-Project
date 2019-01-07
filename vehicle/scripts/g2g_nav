@@ -21,15 +21,17 @@ def dist_between(a, b):
     return dist
 
 
-class Duckbot_g2g_controller:
+class Duckbot_g2g_controller(object):
 
     def __init__(self):
         rospy.init_node('duckbot_g2g_controller')
         self.robot_name = rospy.get_param('~veh') # 'duckiebot_' + rospy.get_param('~veh')
 
-        rospy.wait_for_service('/gazebo/get_model_state')
+        rospy.loginfo('Go to goal controller for ' + self.robot_name + ' launching...')
+        rospy.wait_for_service('/gazebo/get_model_state', 5.0)
         self.robot_dist_service = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         rospy.sleep(1)
+
 
         self.pub_vel = rospy.Publisher('/' + self.robot_name + '/cmd_vel', Twist, queue_size=1)
         self.pub_pose = rospy.Publisher('~pose', Pose, queue_size=1)
@@ -40,6 +42,7 @@ class Duckbot_g2g_controller:
         _ = threading.Thread(target=self.update_pose)
         _.daemon = True
         _.start()
+        rospy.loginfo('Go to goal controller for ' + self.robot_name + ' launched.')
 
     def update_pose(self):
 	rate = rospy.Rate(10)
