@@ -4,3 +4,6 @@
 [submodule "Distributed-Sky"]
 	path = Distributed-Sky
 	url = git@github.com:DroneEmployee/Distributed-Sky.git
+[submodule "drone_employee_ros"]
+	path = drone_employee_ros
+	url = https://github.com/DroneEmployee/drone_employee_ros
