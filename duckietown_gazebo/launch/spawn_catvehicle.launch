@@ -1,0 +1,29 @@
+<launch>
+
+  <arg name="veh" default="robot1"/>
+  <arg name="x" default="-10.0" />
+  <arg name="y" default="2.0" />
+  <arg name="local" default="true" />
+ 
+
+  <!-- Spawning a duckibot at the coordinates indicated -->
+  <include file="$(find duckietown_gazebo)/launch/include/catvehicle.launch.xml" >
+  	<arg name="robot_name" value="$(arg veh)"/>
+    <arg name="x" value="$(arg x)" />
+    <arg name="y" value="$(arg y)" />
+  </include>
+  
+  <!-- launch the fake_navigation -->
+  <!--include file="$(find fake_navigation)/launch/start.launch" >
+  	<arg name="robot_name" value="$(arg veh)"/>
+  </include-->
+  
+  <!-- launch the go-to-goal controller -->
+  <group ns="$(arg veh)">
+  <include file="$(find vehicle)/launch/controller.launch" >
+  	<arg name="veh" value="$(arg veh)" />
+  	<arg name="base_speed" value="0.5" />
+  </include>
+  </group>
+
+</launch>

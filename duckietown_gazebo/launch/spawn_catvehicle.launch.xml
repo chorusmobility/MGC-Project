@@ -1,0 +1,28 @@
+<launch>
+
+  <arg name="veh" default="robot1"/>
+  <arg name="robot_name" value="$(arg veh)"/>
+  <arg name="x" default="-10.0" />
+  <arg name="y" default="2.0" />
+  <arg name="local" default="true" />
+
+
+  <!-- Put a robot in gazebo, make it look pretty -->
+  <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner_$(arg robot_name)" respawn="false" output="screen"
+        args="-urdf -x $(arg x) -y $(arg y) -z 0.0 -model duckiebot_$(arg robot_name) -param $(arg robot_name)/robot_description -namespace $(arg robot_name)"/>
+
+  <!--<param name="robot_description" command="xacro --inorder $(find duckietown_description)/robots/carvehicle.urdf.xacro robot_name:=$(arg robot_name)" />-->
+  <param name="robot_description" textfile="$(find catvehicle)/urdf/car.urdf"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
+    <param name="publish_frequency" value="10.0"/>
+  </node>
+
+  <group ns="$(arg veh)">
+  <!-- launch the go-to-goal controller -->
+  <!--include file="$(find vehicle)/launch/controller.launch" >
+  	<arg name="veh" value="$(arg veh)" />
+  	<arg name="base_speed" value="0.5" />
+  </include-->
+  </group>
+
+</launch>
