@@ -1,0 +1,9 @@
+<launch>
+    <arg name="veh" default="Alice" />
+    <arg name="base_speed" default="0.5" />
+
+    <node name="g2g_controller" pkg="vehicle" type="g2g_nav" output="screen">
+        <param name="veh" value="$(arg veh)" />
+        <param name="base_speed" value="$(arg base_speed)" />
+    </node>
+</launch>

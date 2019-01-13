@@ -1,0 +1,106 @@
+#!/usr/bin/sh
+
+# 1
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: 7.70
+  y: 8.92
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: 5.32
+  y: 7.11
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: 5.13
+  y: 10.29
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
+
+# 2
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: 7.90
+  y: 1.70
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: 5.75
+  y: 4.30
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: 9.16
+  y: 3.31
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
+
+# 3
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: 0.51
+  y: 1.73
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: 0.36
+  y: 4.44
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: 2.75
+  y: 1.64
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
+
+# 4
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: -4.56
+  y: 1.83
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: -4.55
+  y: 4.00
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: -2.44
+  y: 3.98
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
+
+# 5
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: -4.56
+  y: 1.83
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: -9.32
+  y: 4.27
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: -6.07
+  y: 4.98
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
+
+# 6
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: -4.56
+  y: 1.83
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: -12.27
+  y: 4.44
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: -9.25
+  y: 2.55
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
+
+# 7
+rosservice call /Alice/g2g_controller/move_to_goal "goal:
+  x: -19.24
+  y: 1.54
+  z: 0.0" &
+rosservice call /Bob/g2g_controller/move_to_goal "goal:
+  x: -21.58
+  y: 4.57
+  z: 0.0" &
+rosservice call /Charlie/g2g_controller/move_to_goal "goal:
+  x: -21.6
+  y: 1.35
+  z: 0.0" &
+read -n 1 -s -r -p "Press any key to continue"
