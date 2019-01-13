@@ -1,6 +1,6 @@
 <launch>
-  <group ns="vehicle_1">
-    <node name="trader_utm" pkg="vehicle" type="trader_node" output="screen">
+  <group ns="Alice">
+    <node name="road_market" pkg="road_market_client" type="trader_node" output="screen">
       <param name="ipfs_http_provider" value="http://127.0.0.1:5001" />
       <param name="lighthouse" value="0xE85764E29583224C1D063639d2AeeeD7c389DF4d" />
       <param name="model" value="QmRybtgtRntQnUKydCtAPZHGuSp4zHDeLZQvjTZhDKGxrF" />
