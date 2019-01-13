@@ -5,17 +5,20 @@ Our effort for The MOBI Grand Challenge (mobihacks.devpost.com) in kind cooperat
 
 Use case
 ========
-1. Unmanned Traffic Management (UTM)
+
+Unmanned Traffic Management (UTM)
+------------------------------------
     1. Self driving car ask UTM for a permissioned path between point A and point B
     1. UTM offers a path permissioned
     1. Self driving car send an acceptance message
     1. Robonomics network provider create a permission in form of smart contract
     1. When contract achieve Ethereum blockchain, permission became immutable
 
-2. Trading for on road priority
+Trading for on road priority
+----------------------------
 
-Actors
-------
+### Actors
+
 
 - Vehicle Alice (Agrees to be Slower/Accept Payments and give Rights of Way)
 This car's passenger made a preference selection to pay for a ride less money but arrive later than average ETA, within certain estimated time/price limits.
@@ -26,8 +29,7 @@ This car's passenger made a preference selection to pay for a ride more money bu
 - Vehicle Charlie (Wants to be Faster/Pay for Rights of Way)
 This car's passenger made a preference selection to pay for a ride more money but arrive faster, with a smaller maximum estimated price limit - auction loser
 
-Scenario 1
-----------
+### Scenario 1
 
 - Alice is in the left lane. Charlie in the Right Lane follows Bob. 
 - Both Bob and Charlie want to move to the left lane and sending that request to Alice.
