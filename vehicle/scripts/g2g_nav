@@ -22,10 +22,12 @@ def dist_between(a, b):
 
 
 class Duckbot_g2g_controller(object):
+    """Proportional regulator for differential driven robot
+    """
 
     def __init__(self):
         rospy.init_node('duckbot_g2g_controller')
-        self.robot_name = rospy.get_param('~veh') # 'duckiebot_' + rospy.get_param('~veh')
+        self.robot_name = rospy.get_param('~veh')
 
         rospy.loginfo('Go to goal controller for ' + self.robot_name + ' launching...')
         rospy.wait_for_service('/gazebo/get_model_state', 5.0)
