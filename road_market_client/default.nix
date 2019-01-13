@@ -5,7 +5,7 @@
 
 mkRosPackage rec {
   name = "${pname}-${version}";
-  pname = "vehicle";
+  pname = "road_market_client";
   version = "master";
 
   src = ./.;
@@ -13,7 +13,7 @@ mkRosPackage rec {
   propagatedBuildInputs = [ robonomics_comm ];
 
   meta = with stdenv.lib; {
-    description = "Vehicle package";
+    description = "Road peer-to-peer market client package";
     homepage = https://github.com/airalab/mobi_grand_challenge;
     license = licenses.bsd3;
     maintainers = with maintainers; [ akru ];

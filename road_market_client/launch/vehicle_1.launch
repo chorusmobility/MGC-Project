@@ -6,7 +6,7 @@
       <param name="model" value="QmRybtgtRntQnUKydCtAPZHGuSp4zHDeLZQvjTZhDKGxrF" />
       <param name="token" value="0x093ac06910f23570292fd5027a4fA558ed4Cd010" />
       <param name="bid_lifetime" value="2" /> <!-- Ethereum blocks lifetime, ~12-15 sec for one -->
-      <param name="arrangement_cost_start" value="10" />
+      <param name="arrangement_cost_start" value="4" />
     </node>
   </group>
 

@@ -1,25 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vehicle)
+project(road_market_client)
 
 find_package(catkin REQUIRED COMPONENTS
     rospy
-    std_msgs
-    geometry_msgs
-    message_generation
-)
-
-add_service_files(
-    FILES
-        SetGoal.srv
 )
 
 catkin_python_setup()
-
-generate_messages(
-    DEPENDENCIES
-        geometry_msgs
-        std_msgs
-)
 
 catkin_package()
 
