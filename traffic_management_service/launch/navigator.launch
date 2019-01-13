@@ -1,0 +1,3 @@
+<launch>
+  <node name="navigator" pkg="traffic_management_service" type="navigator_node" output="screen" />
+</launch>

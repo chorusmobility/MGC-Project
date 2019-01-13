@@ -1,0 +1,8 @@
+<launch>
+  <node name="registrator" pkg="traffic_management_service" type="registrator_node" output="screen">
+    <param name="lighthouse" value="0xE85764E29583224C1D063639d2AeeeD7c389DF4d" />
+    <param name="model" value="QmWK8hf15C4zYnksoaLvNrzkFtnX8LQCvQRYf8neTtXnBk" />
+    <param name="token" value="0x093ac06910f23570292fd5027a4fA558ed4Cd010" />
+    <param name="order_lifetime" value="10" />
+  </node>
+</launch>
