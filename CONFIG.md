@@ -17,8 +17,10 @@ Permissions market
 |               |                                                                                 |
 | ------------- | ------------------------------------------------------------------------------- |
 | lighthouse    | airalab.lighthouse.4.robonomics.sid, 0xE85764E29583224C1D063639d2AeeeD7c389DF4d |
-| model         | QmXFJ1fiktErQZKSfSwrBEbjyVWX3GLAvRGswWUHdeKBfE                                  |
-| objective     | QmSH31dHZUAFHKB3xK3KkoF4nZBwd3XPGWGU6ZGxye974R                                  |
+| model         | QmWK8hf15C4zYnksoaLvNrzkFtnX8LQCvQRYf8neTtXnBk                                  |
+| objective A   | QmQuqUsTy3ue371ket4AfXTWCWRa5WHbRiPfEAQbauzLru                                  |
+| objective B   | Qmb6SSXBq7bViBxDc62Ko1hvx6Ff1s5XvMZeogrG2gf5bF                                  |
+| objective C   | QmWHox7NvCDgNnxgnNXbehJRGiidBBmGY26yRABY5UHYin                                  |
 | token         | xrt.4.robonomics.sid, 0x093ac06910f23570292fd5027a4fA558ed4Cd010                |
 
 Road priority market
