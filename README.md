@@ -5,15 +5,39 @@ Our effort for The MOBI Grand Challenge (mobihacks.devpost.com) in kind cooperat
 
 Use case
 ========
-1. Unmanned Traffic Management
+1. Unmanned Traffic Management (UTM)
     1. Self driving car ask UTM for a permissioned path between point A and point B
     1. UTM offers a path permissioned
     1. Self driving car send an acceptance message
     1. Robonomics network provider create a permission in form of smart contract
     1. When contract achieve Ethereum blockchain, permission became immutable
+
 2. Trading for on road priority
 
-#TODO
+Actors
+------
+
+- Vehicle Alice (Agrees to be Slower/Accept Payments and give Rights of Way)
+This car's passenger made a preference selection to pay for a ride less money but arrive later than average ETA, within certain estimated time/price limits.
+
+- Vehicle Bob (Wants to be Faster/Pay for Rights of Way)
+This car's passenger made a preference selection to pay for a ride more money but arrive faster, with a larger maximum estimated price limit - auction winner
+
+- Vehicle Charlie (Wants to be Faster/Pay for Rights of Way)
+This car's passenger made a preference selection to pay for a ride more money but arrive faster, with a smaller maximum estimated price limit - auction loser
+
+Scenario 1
+----------
+
+- Alice is in the left lane. Charlie in the Right Lane follows Bob. 
+- Both Bob and Charlie want to move to the left lane and sending that request to Alice.
+- Alice sets the minimum price she is willing to accept to give the rights of way (slow down and let either Bob or Charlie in the left lane )
+- Bob submits the maximum price he is willing to pay for space
+- Charlie submits the maximum price he is willing to pay for space
+- Vickery auction is conducted.
+- Auction results revealed 
+- Bob wins the auction
+- Alice slows down to let Bob take place in front of her in the left lane
 
 How to launch
 =============
@@ -22,37 +46,36 @@ Preparation
 -----------
 1. Install `Nix` package manager [nixos.org/nix](https://nixos.org/nix/),
 2. Download this project
-```
+```bash
 git clone git@github.com:airalab/mobi_grand_challenge.git
 ```
-3. Build it
+3. Build each package you would like to launch
+```bash
+nix build -f $PACKAGE_NAME/release.nix
 ```
-nix build -f release.nix
+
+4. Source executables path from `result` directory
+```bash
+source ./result/setup.bash
+```
+
+5. Launch packages you need
+```bash
+roslaunch $PACKAGE_NAME $LAUNCHFILE_NAME
 ```
 
 AIRA packages
 -------------
-We will need two persistent terminals for logs
+We need two AIRA services to communicate with Robonoimcs network
 
-1. In first launch `robonomics_liability` node to connect with Robonomics network providers
+1. First launch `robonomics_liability` node to connect with Robonomics network providers
 ```
 source ./result/setup.bash
 source ./liability.sh
 ```
 
-2. In second one launch `ethereum_common` node to have a ROS API to web3
+2. Then launch `ethereum_common` node to have a ROS API to web3
 ```
 source ./result/setup.bash
-source ./liability.sh
+source ./ethereum_common.sh
 ```
-
-Application specifig packages
------------------------------
-We will use a `vehicle` package based on a [template](https://github.com/airalab/autonomous_agent_template)
-It consists of `trader_node` and `worker_node`. Trader responsible for negotiations. It broadcast signed demand / offer messages.
-When *Robonomics network* provider recieve an offer and demand with attributes (model, objective, cost and etc.) the same, it will follow with transaction to create a contract between parties.
-
-
-Abbreviations and acronyms
-==========================
-- UTM - Unmanned Traffic Management system
