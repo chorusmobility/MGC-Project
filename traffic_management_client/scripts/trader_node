@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Standart, System and Third Party
+import os
+from tempfile import TemporaryDirectory
+from urllib.parse import urlparse
+import ipfsapi
+
+# ROS
+import rospy
+import rosbag
+from std_srvs.srv import (Empty as Arrange, # while we don't need to specify something in arrange
+                          EmptyRequest as ArrangeRequest,
+                          EmptyResponse as ArrangeResponse)
+from std_srvs.srv import Empty as AskPermission
+
+# AIRA
+from ipfs_common.msg import Multihash
+from robonomics_msgs.msg import Offer, Demand
+from ethereum_common.msg import Address, UInt256
+from ethereum_common.srv import Accounts, BlockNumber
+
+
+class TraderNode:
+    """Ask for permission node
+    """
+
+    def __init__(self):
+        rospy.init_node('trader')
+
+        ipfs_provider = urlparse(rospy.get_param('~ipfs_http_provider')).netloc.split(':')
+        self.ipfs_client = ipfsapi.connect(ipfs_provider[0], int(ipfs_provider[1]))
+        self._tmp_directory = TemporaryDirectory()
+
+        self.signing_demand = rospy.Publisher('/liability/infochan/eth/signing/demand',
+                                              Demand, queue_size=128)
+        self.signing_offer = rospy.Publisher('/liability/infochan/eth/signing/offer',
+                                             Offer, queue_size=128)
+
+        rospy.Subscriber('/liability/infochan/incoming/demand', Demand, self.on_incoming_demand)
+        rospy.Subscriber('/liability/infochan/incoming/offer', Offer, self.on_incoming_offer)
+
+        rospy.Service('~ask_perm', AskPermission, self._ask_perm_handler)
+
+    def _ask_perm_handler(self, request):
+        objective = Multihash(rospy.get_param('~objective'))
+        self.make_demand(objective, UInt256('0'))
+        return
+
+    def act(self, incoming):
+        pass # passive
+    
+    def on_incoming_demand(self, incoming_demand: Demand):
+        rospy.loginfo('Incoming demand %s...', str(incoming_demand))
+        if (incoming_demand.model.multihash == rospy.get_param('~model') and
+            incoming_demand.token.address == rospy.get_param('~token')):
+            rospy.loginfo('For my model and token!')
+            self.act(incoming_demand) # reactive strategy
+        else:
+            rospy.loginfo('Not fits my model or token, skip it.')
+
+    def on_incoming_offer(self, incoming_offer: Offer):
+        rospy.loginfo('Incoming offer %s...', str(incoming_offer))
+        if (incoming_offer.model.multihash == rospy.get_param('~model') and
+            incoming_offer.token.address == rospy.get_param('~token')):
+            rospy.loginfo('For my model and token!')
+            self.act(incoming_offer) # reactive strategy
+        else:
+            rospy.loginfo('Not fits my model or token, skip it.')
+
+    def _get_counter_lot_type(self, lot):
+        if type(lot) == Offer:
+            return Demand
+        elif type(lot) == Demand:
+            return Offer
+        else:
+            raise TypeError('Unknown lot type')
+
+    def make_lot(self, lot_type, objective: Multihash, cost: UInt256):
+        lot = lot_type() # Offer or Demand
+        lot.model = Multihash(rospy.get_param('~model'))
+        lot.objective = objective
+        lot.token = Address(rospy.get_param('~token'))
+        lot.cost = cost
+        lot.lighthouse = Address(rospy.get_param('~lighthouse'))
+        lot.validator = Address('0x0000000000000000000000000000000000000000')
+        lot.deadline = UInt256('9999999')
+
+        if lot_type == Demand:
+            lot.validatorFee = UInt256('0')
+            self.signing_demand.publish(lot)
+        elif lot_type == Offer:
+            lot.lighthouseFee = UInt256('0')
+            self.signing_offer.publish(lot)
+        else:
+            raise TypeError('Unknown lot type')
+        #self.lots_sent.append(lot)
+        rospy.loginfo(lot)
+
+    def make_demand(self, objective: Multihash, cost: UInt256):
+        rospy.loginfo('Making demand...')
+        self.make_lot(Demand, objective, cost)
+
+    def make_offer(self, objective: Multihash, cost: UInt256):
+        rospy.loginfo('Making offer...')
+        self.make_lot(Offer, objective, cost)
+
+    def spin(self):
+        rospy.spin()
+
+
+if __name__ == '__main__':
+    TraderNode().spin()
