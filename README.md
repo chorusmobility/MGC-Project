@@ -1,6 +1,6 @@
 MOBI Grand Challenge
 ====================
-Our effort for The MOBI Grand Challenge (mobihacks.devpost.com) in kind cooperation with Chorus Mobility (www.chorus.mobi) and Decentralized Technologies (www.dczd.tech)
+MOBI Grand Challenge project (mobihacks.devpost.com) in kind cooperation with Aira Lab (www.aira.life) and Decentralized Technologies (www.dczd.tech)
 
 
 Use case
